@@ -1,72 +1,79 @@
 # ML_python
 
-Git task	Notes	Git commands
-Tell Git who you are	Configure the author name and email address to be used with your commits.
-Note that Git strips some characters (for example trailing periods) from user.name.
+git cheat-sheet
+The git command-line utility has plenty of inconsistencies http://steveko.wordpress.com/2012/02/24/10-things-i-hate-about-git/
 
-git config --global user.name "Sam Smith"
-git config --global user.email sam@example.com
+A GUI like http://sourcetreeapp.com is often helpful, but staying on the command line usually quicker. This is a list of the commands I use most frequently, listed by funcional category:
 
-Create a new local repository	 	
-git init
-Check out a repository	Create a working copy of a local repository:	
-git clone /path/to/repository
-For a remote server, use:	
-git clone username@host:/path/to/repository
-Add files	Add one or more files to staging (index):	
-git add <filename>
+current state
+git status	list which (unstaged) files have changed
+git diff	list (unstaged) changes to files
+git log	list recent commits
 
-git add *
-Commit	Commit changes to head (but not yet to the remote repository):	
-git commit -m "Commit message"
-Commit any files you've added with git add, and also commit any files you've changed since then:	
-git commit -a
-Push	Send changes to the master branch of your remote repository:	
-git push origin master
-Status	List the files you've changed and those you still need to add or commit:	
-git status
-Connect to a remote repository	If you haven't connected your local repository to a remote server, add the server to be able to push to it:	git remote add origin <server>
-List all currently configured remote repositories:	git remote -v
-Branches	Create a new branch and switch to it:	
-git checkout -b <branchname>
-Switch from one branch to another:	
-git checkout <branchname>
-List all the branches in your repo, and also tell you what branch you're currently in:	
-git branch
-Delete the feature branch:	
-git branch -d <branchname>
-Push the branch to your remote repository, so others can use it:	
-git push origin <branchname>
-Push all branches to your remote repository:	
-git push --all origin
-Delete a branch on your remote repository:	
-git push origin :<branchname>
-Update from the remote repository	Fetch and merge changes on the remote server to your working directory:	git pull
-To merge a different branch into your active branch:	
-git merge <branchname>
-View all the merge conflicts:
-View the conflicts against the base file:
+adding files to repo
+git add fn	stage file
+git commit -m 'message'	commit file
+git commit -am 'message'	add/commit all changes from all tracked files (no untracked files) in one go
 
-Preview changes, before merging:
+undoing previous actions
+http://git-scm.com/book/en/Git-Tools-Rewriting-History
+git reset filename	unstage file
+git commit --amend -m 'message'	alter the last commit (add any staged files, new comment)
+git reset --soft HEAD^	undo previous commit, put changes in staging
+git reset --hard HEAD^	Undo last commit and all changes
+git reset --hard HEAD^^	Undo two (^^) last commits and all changes
+git checkout -- cats.html index.html	Undo all changes that were made to files cats.html and index.html
+git rebase --onto <commit-id>\^ <commit-id> HEAD	remove specific commit from repository. the \ in ^ is just an escape char to make zsh play nice and is not necessary if using bash.
 
-git diff
-git diff --base <filename>
+remote repositories
+git remote add origin git@example.com:example/petshop.git add a remote repository
+git push -u origin master	push current local repo to remote. -u sets it to default for the future
+git remote -v show	show the available remote repositories that have been added
+git pull	checkout and merge remote changes in one go
+git fetch origin	update the local cache of the remote repository
+git remote -v update	bring remote refs up to date (and -v show which branches were updated)
+git status -uno will tell you whether the branch you are tracking is ahead, behind or has diverged. If it says nothing, the local and remote are the same.
+git show-branch *master will show you the commits in all of the branches whose names end in master (eg master and origin/master).
+git show remote origin	show local<->remote branch tracking and sync status
 
-git diff <sourcebranch> <targetbranch>
-After you have manually resolved any conflicts, you mark the changed file:	
-git add <filename>
-Tags	You can use tagging to mark a significant changeset, such as a release:	
-git tag 1.0.0 <commitID>
-CommitId is the leading characters of the changeset ID, up to 10, but must be unique. Get the ID using:	
-git log
-Push all tags to remote repository:	
-git push --tags origin
-Undo local changes	If you mess up, you can replace the changes in your working tree with the last content in head:
-Changes already added to the index, as well as new files, will be kept.
-
-git checkout -- <filename>
-Instead, to drop all your local changes and commits, fetch the latest history from the server and point your local master branch at it, do this:	
+Examine changes on remote, without pulling them
 git fetch origin
+git log HEAD..origin/master --oneline shows commit messages
+git diff HEAD..origin/master shows all changes on remote compared to local HEAD
 
-git reset --hard origin/master
-Search	Search the working directory for foo():	git grep "foo()"
+Branches
+git branch	list currently existing branches
+git branch [branchname]	create new branch
+git checkout branchname	move to that branch
+git checkout -b branchname	create and checkout new branch in one go
+git branch -d branchname	remove branch
+
+merging branch back to master
+git checkout master; git merge branchname;	conditions for fast-forward merge - nothing new on master between branch start/end points
+
+branches on remote
+git fetch origin``git branch -r list remote branches (after a fetch)
+git push origin :branchname	delete remote branch 'branchname'
+git remote prune origin	clean up deleted remote branches (let's say someone else deleted a branch on the remote)
+git show remote origin	show local<->remote branch tracking and sync status (duplicate info under "remote repositories")
+
+push local branch to differently named remote branch. Eg Heroku only deploys master
+git push heroku yourbranch:master simple form
+git push heroku-staging staging:master (localBranchName:remoteBranchName)
+
+tagging
+git tag	list all tags
+git checkout v0.0.1	checkout code
+git tag -a v0.0.3	-m 'Version 0.0.3'	add new tag
+git push --tags	push new tags to remote
+
+dealing with large files - keep them outside the repo on an ssh machine.
+http://stackoverflow.com/questions/540535/managing-large-binary-files-with-git
+http://git-annex.branchable.com/walkthrough/ #see ssh section
+
+git annex add mybigfile
+git commit -m 'add mybigfile'
+git push myremote git annex copy --to myremote mybigfile this command copies the actual content to myremote
+git annex drop mybigfile remove content from local repo
+git annex get mybigfile retrieve the content
+git annex copy --from myremote mybigfilespecify the remote from which to get the file
